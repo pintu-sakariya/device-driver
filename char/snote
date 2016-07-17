@@ -1,0 +1,40 @@
+	User can not directly communicate with hardware
+		- possessing privileges (special instructiion an habdling interrupt.
+	
+	Interrupt - device I/O and processor speed mismatch
+
+sysfs, kobject, device classes
+------------------------------
+
+kobject representation in sysfs
+
+modprobe test	| ->  		test_init()
+	    	|  kernel space 	|
+user space	|  		misc_register(&test_dev)
+					|
+				class_device_register()
+					|
+			---------------------------------------------------
+			|-------->	|-------->	|------->	  |	
+		kobject_add()  		|		|	kobject_uevent(KOBJ_ADD)	
+			| 	class_device_create_file()	|		  | 	
+			|		|		|		  |
+		sysfs_create_dir()	|	class_device_add_attrs()	  |
+			|	sysfs_create_file()	|	kobject_uevent_env()	
+			|		|		|		  |	
+		/sys/class/misc/test	|	class_device_create_file()	  |
+					|		|		  |		
+			/sys/class/misc/test/uevent	|		  |
+							|	udevd receive the uevent via
+							|	netlink socket and creates 
+							|	/dev nodes after consulting its 
+							|	rules database.
+							|		  |	
+						sysfs_create_file()	  |
+							|		  |	
+					      /sys/class/misc/test/dev	  |
+									  |
+									/dev/test		
+								
+Hotplug -  connected to running system on-the-fly
+Coldplug - connected prior to system boot 
